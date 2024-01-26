@@ -1,0 +1,4 @@
+*.txt
+trained_model/
+src/__pycache__
+input
