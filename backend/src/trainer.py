@@ -28,12 +28,17 @@ def train_model(model, tokenizer, config):
         output_dir=config.model_directory,
         overwrite_output_dir=True,
         num_train_epochs=3,
-        per_device_train_batch_size=4,  # Adjust batch size as per GPU/CPU memory
+        per_device_train_batch_size=8,  # Adjust based on GPU memory
+        gradient_accumulation_steps=2,  # Use if increasing batch size is not feasible
+        fp16=True,  # If GPU supports FP16, use it
+        learning_rate=5e-5,  # Adjust as necessary
+        warmup_steps=500,  # Adjust based on dataset size and model
         save_steps=10_000,
         save_total_limit=2,
         seed=random.randint(1, 10000),
-        logging_dir=f"{config.model_directory}/logs",  # Directory for storing logs
-        logging_steps=500,
+        load_best_model_at_end=True,  # Load the best model at the end of training
+        evaluation_strategy="steps",  # Or "no" to disable evaluation during training
+        eval_steps=5000,  # Adjust based on preference
     )
     
     trainer = Trainer(

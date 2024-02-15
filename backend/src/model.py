@@ -37,7 +37,7 @@ class ConversationModel:
             input_ids,
             max_length=max_length,
             do_sample=True,
-            top_k=80,
+            top_k=70,
             no_repeat_ngram_size=0,
             pad_token_id=self.tokenizer.eos_token_id
         )
