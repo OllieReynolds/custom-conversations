@@ -29,8 +29,7 @@ class ConversationModel:
     def train_model(self, model, tokenizer):
         train_model(model, tokenizer, self.config)
 
-    def continue_conversation(self, conversation_history):
-        # Encode the conversation history and generate the continuation
+    def continue_conversation(self, conversation_history, hide_conversation_history=True):
         input_ids = self.tokenizer.encode(conversation_history, return_tensors='pt').to(self.config.device)
         max_length = len(input_ids[0]) + 500
         generated_text_ids = self.model.generate(
@@ -41,11 +40,15 @@ class ConversationModel:
             no_repeat_ngram_size=0,
             pad_token_id=self.tokenizer.eos_token_id
         )
-        return self.tokenizer.decode(generated_text_ids[0], skip_special_tokens=True)
+        if hide_conversation_history:
+            new_text_start = input_ids.shape[1]
+            return self.tokenizer.decode(generated_text_ids[0][new_text_start:], skip_special_tokens=True)
+        else:
+            return self.tokenizer.decode(generated_text_ids[0], skip_special_tokens=True)
 
 if __name__ == "__main__":
     config = Config()
     conversation_model = ConversationModel(config)
-    conversation_history = "Replace this text with some conversation history."
+    conversation_history = "I want to get more furry and more adorable."
     generated_text = conversation_model.continue_conversation(conversation_history)
     print(generated_text)
