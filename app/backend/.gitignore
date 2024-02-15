@@ -2,3 +2,5 @@ input/
 trained_model/
 src/__pycache__
 input
+*.txt
+!requirements.txt
