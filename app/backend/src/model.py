@@ -2,7 +2,6 @@ import os
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from trainer import train_model
 from config import Config
-
 class ConversationModel:
     def __init__(self, config):
         self.config = config
