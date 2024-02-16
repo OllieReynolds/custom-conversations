@@ -1,38 +1,29 @@
+from app.common.src.mqtt import MQTTService
 from config import Config
 from model import ConversationModel
 import random
-import paho.mqtt.client as mqtt
-import threading
 from utils import check_cuda_available
+
 
 class App():
     def __init__(self, dry_run=False):
         super().__init__()
         if not dry_run:
+            self.mqtt_service = MQTTService()
+            self.mqtt_service.start(True)
             self.mqtt_setup()
         
     def mqtt_setup(self):
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-        self.client.on_connect = self.on_connect
-        self.client.on_message = self.on_message
-        self.client.connect("broker.emqx.io", 1883, 60)
-        self.client.loop_forever()
+        self.mqtt_service.subscribe("req/app/generate_conversation", self.callback_generate_conversation)
+        self.mqtt_service.subscribe("req/utils/check_cuda_available", self.callback_check_cuda_available)
         
-    def on_connect(self, client, userdata, flags, reason_code, properties):
-        print("Connected with result code " + str(reason_code))
-        self.client.subscribe("req/app/generate_conversation")
-        self.client.subscribe("req/utils/check_cuda_available")
-        
-    def on_message(self, client, userdata, msg):
-        if msg.topic == "req/app/generate_conversation":
-            threading.Thread(target=self.generate_conversation_and_publish).start()
-        elif msg.topic == "req/utils/check_cuda_available":
-            cuda_available = check_cuda_available()
-            self.client.publish("rec/utils/check_cuda_available", str(cuda_available))
-            
-    def generate_conversation_and_publish(self):
+    def callback_generate_conversation(self):
         conversation = self.generate_conversation()
-        self.client.publish("rec/app/generate_conversation", conversation)
+        self.mqtt_service.publish("rec/app/generate_conversation", conversation)
+        
+    def callback_check_cuda_available(self):
+        cuda_available = check_cuda_available()
+        self.mqtt_service.publish("rec/utils/check_cuda_available", str(cuda_available))
 
     def generate_conversation(self):
         config = Config()

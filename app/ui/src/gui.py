@@ -11,6 +11,11 @@ class ConversationGenerator(tk.Tk):
         self.mqtt_service.start()
         self.mqtt_setup()
         self._configure_ui()
+        
+    def mqtt_setup(self):
+        self.mqtt_service.subscribe("rec/app/generate_conversation", self.draw_generate_conversation)
+        self.mqtt_service.subscribe("rec/utils/check_cuda_available", self.draw_check_cuda_available)
+        self.req_check_cuda_available()
 
     def _configure_ui(self):
         self.paned_window = tk.PanedWindow(self, orient=tk.HORIZONTAL)
@@ -58,11 +63,6 @@ class ConversationGenerator(tk.Tk):
         # self.icon2 = tk.PhotoImage(file="icon2.png")
         # self.icon_label_2 = tk.Label(self.status_frame, image=self.icon2)
         # self.icon_label_2.pack(side=tk.LEFT)
-
-    def mqtt_setup(self):
-        self.mqtt_service.subscribe("rec/app/generate_conversation", self.draw_generate_conversation)
-        self.mqtt_service.subscribe("rec/utils/check_cuda_available", self.draw_check_cuda_available)
-        self.req_check_cuda_available()
 
     def req_generate_conversation(self):
         self.spinner_label.config(text="Working...")
