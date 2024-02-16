@@ -1,88 +1,114 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, Menu
 import requests
 import threading
 
-class ConversationGenerator(tk.Tk):
+from app.ui.src.utils import dark_title_bar
+
+class AppUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Conversation Generator")
-        self.backend_url = "http://localhost:5000"
-        self._configure_ui()
-        self.req_check_cuda_available()
+        self.backendURL = "http://localhost:5000"
+        self.configure(bg='#121212')
+        self.textColor = '#FF00FF'
+        self._configureUI()
+        self._requestCheckCUDAAvailability()
 
-    def _configure_ui(self):
-        self.paned_window = tk.PanedWindow(self, orient=tk.HORIZONTAL)
-        self.paned_window.pack(fill=tk.BOTH, expand=True)
+    def _configureUI(self):
+        self.windowPane = tk.PanedWindow(self, orient=tk.HORIZONTAL, bg='#121212', sashrelief=tk.RAISED, sashwidth=5)
+        self.windowPane.pack(fill=tk.BOTH, expand=True)
 
-        self._setup_check_cuda_frame()
-        self._setup_generate_conversation_frame()
-        self._setup_status_bar_frame()
+        self._setupCUDACheckFrame()
+        self._setupConversationGenFrame()
+        self._setupStatusBar()
+        self._setupMenu()
+        dark_title_bar(self)
 
-    def _setup_check_cuda_frame(self):
-        frame_cuda = tk.Frame(self.paned_window)
-        refresh_cuda_button = tk.Button(frame_cuda, text="Refresh GPU (CUDA) Check", command=self.req_check_cuda_available)
-        refresh_cuda_button.pack(fill=tk.X, padx=10, pady=5)
-        self.paned_window.add(frame_cuda)
+    def _setupCUDACheckFrame(self):
+        cudaFrame = tk.Frame(self.windowPane, bg='#333333')
+        refreshButton = tk.Button(cudaFrame, text="Refresh GPU (CUDA) Check", bg='#232323', fg=self.textColor, command=self._requestCheckCUDAAvailability)
+        refreshButton.pack(fill=tk.X, padx=10, pady=5)
+        self.windowPane.add(cudaFrame)
 
-    def _setup_generate_conversation_frame(self):
-        frame_gen_conversation = tk.Frame(self.paned_window)
-        self.text_area = scrolledtext.ScrolledText(frame_gen_conversation, wrap=tk.WORD, state='disabled')
-        self.text_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        generate_button = tk.Button(frame_gen_conversation, text="Generate Conversation", command=self.req_generate_conversation)
-        generate_button.pack(fill=tk.X, padx=10, pady=5)
-        self.paned_window.add(frame_gen_conversation)
+    def _setupConversationGenFrame(self):
+        convFrame = tk.Frame(self.windowPane, bg='#333333')
+        self.textArea = scrolledtext.ScrolledText(convFrame, wrap=tk.WORD, state='disabled', bg='#121212', fg=self.textColor)
+        self.textArea.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        genButton = tk.Button(convFrame, text="Generate Conversation", bg='#232323', fg=self.textColor, command=self._requestGenerateConversation)
+        genButton.pack(fill=tk.X, padx=10, pady=5)
+        self.windowPane.add(convFrame)
 
-    def _setup_status_bar_frame(self):
-        self.status_frame = tk.Frame(self, bd=1, relief=tk.SUNKEN)
-        self.status_frame.pack(side=tk.BOTTOM, fill=tk.X)
+    def _setupStatusBar(self):
+        statusBar = tk.Frame(self, bd=1, relief=tk.SUNKEN, bg='#333333')
+        statusBar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # CUDA indicator
-        self.cuda_icon = tk.Label(self.status_frame, text="\u2699", font=("Arial", 12))
-        self.cuda_icon.grid(row=0, column=0, padx=(10,0), pady=5)
+        self.cudaIcon = tk.Label(statusBar, text="\u2699", font=("Arial", 12), bg='#333333', fg=self.textColor)
+        self.cudaIcon.grid(row=0, column=0, padx=(10,0), pady=5)
 
-        self.cuda_indicator_label = tk.Label(self.status_frame, text="Checking GPU (CUDA)...", font=("Helvetica", 10))
-        self.cuda_indicator_label.grid(row=0, column=1, padx=(0,10), pady=5, sticky='w')
+        self.cudaStatus = tk.Label(statusBar, text="Checking GPU (CUDA)...", font=("Helvetica", 10), bg='#333333', fg=self.textColor)
+        self.cudaStatus.grid(row=0, column=1, padx=(0,10), pady=5, sticky='w')
 
-        # Spinner
-        self.spinner_label = tk.Label(self.status_frame, text="Ready")
-        self.spinner_label.grid(row=0, column=2, padx=(0,10), pady=5, sticky='e')
+        self.statusLabel = tk.Label(statusBar, text="Ready", bg='#333333', fg=self.textColor)
+        self.statusLabel.grid(row=0, column=2, padx=(0,10), pady=5, sticky='e')
 
-    def req_check_cuda_available(self):
-        threading.Thread(target=self._background_check_cuda_available).start()
+    def _setupMenu(self):
+        menuBar = Menu(self, bg='#333333', fg=self.textColor)
+        self.config(menu=menuBar)
 
-    def req_generate_conversation(self):
-        self.spinner_label.config(text="Generating Conversation...")
-        threading.Thread(target=self._background_generate_conversation).start()
+        textColorMenu = Menu(menuBar, tearoff=0, bg='#333333', fg=self.textColor)
+        menuBar.add_cascade(label="Text Color", menu=textColorMenu)
 
-    def _background_check_cuda_available(self):
-        response = requests.get(f"{self.backend_url}/check_cuda_available")
+        textColorMenu.add_command(label="Green", command=lambda: self._changeTextColor('#00FF00'))
+        textColorMenu.add_command(label="Cyan", command=lambda: self._changeTextColor('#00FFFF'))
+        textColorMenu.add_command(label="Bright Pink", command=lambda: self._changeTextColor('#FF00FF'))
+
+    def _changeTextColor(self, color):
+        self.textColor = color
+        self.textArea.config(fg=color)
+        self.cudaIcon.config(fg=color)
+        self.cudaStatus.config(fg=color)
+        self.statusLabel.config(fg=color)
+        for widget in self.windowPane.winfo_children():
+            for child in widget.winfo_children():
+                if isinstance(child, tk.Button):
+                    child.config(fg=color)
+
+    def _requestCheckCUDAAvailability(self):
+        threading.Thread(target=self._backgroundCheckCUDAAvailability).start()
+
+    def _requestGenerateConversation(self):
+        self.statusLabel.config(text="Generating Conversation...")
+        threading.Thread(target=self._backgroundGenerateConversation).start()
+
+    def _backgroundCheckCUDAAvailability(self):
+        response = requests.get(f"{self.backendURL}/check_cuda_available")
         if response.ok:
-            cuda_available = response.json().get('cuda_available', False)
-            self.after(0, self.draw_check_cuda_available, cuda_available)
+            cudaAvailable = response.json().get('cuda_available', False)
+            self.after(0, self._drawCUDAAvailability, cudaAvailable)
         else:
-            self.after(0, self.draw_check_cuda_available, False)
+            self.after(0, self._drawCUDAAvailability, False)
 
-    def _background_generate_conversation(self):
-        response = requests.get(f"{self.backend_url}/generate_conversation")
+    def _backgroundGenerateConversation(self):
+        response = requests.get(f"{self.backendURL}/generate_conversation")
         if response.ok:
-            generated_text = response.json().get('conversation', '')
-            self.after(0, self.draw_generate_conversation, generated_text)
+            generatedText = response.json().get('conversation', '')
+            self.after(0, self._drawGeneratedConversation, generatedText)
         else:
-            self.after(0, lambda: self.spinner_label.config(text="Error"))
+            self.after(0, lambda: self.statusLabel.config(text="Error"))
 
-    def draw_check_cuda_available(self, is_available):
-        cuda_text = "GPU (CUDA): Available" if is_available else "GPU (CUDA): Not Available"
-        cuda_color = "green" if is_available else "red"
-        self.cuda_indicator_label.config(text=cuda_text, fg=cuda_color)
+    def _drawCUDAAvailability(self, isAvailable):
+        cudaText = "GPU (CUDA): Available" if isAvailable else "GPU (CUDA): Not Available"
+        cudaColor = "green" if isAvailable else "red"
+        self.cudaStatus.config(text=cudaText, fg=cudaColor)
 
-    def draw_generate_conversation(self, generated_text):
-        self.text_area.configure(state='normal')
-        self.text_area.delete(1.0, tk.END)
-        self.text_area.insert(tk.END, generated_text)
-        self.text_area.configure(state='disabled')
-        self.spinner_label.config(text="Ready")
+    def _drawGeneratedConversation(self, generatedText):
+        self.textArea.configure(state='normal')
+        self.textArea.delete(1.0, tk.END)
+        self.textArea.insert(tk.END, generatedText)
+        self.textArea.configure(state='disabled')
+        self.statusLabel.config(text="Ready")
 
 if __name__ == "__main__":
-    ui = ConversationGenerator()
-    ui.mainloop()
+    app = AppUI()
+    app.mainloop()
