@@ -1,14 +1,21 @@
 import tkinter as tk
 from tkinter import messagebox
 
+from app.ui.src.components.stylised_title import StylizedTitle
+
 class ConfigurationEditorFrame(tk.Frame):
-    def __init__(self, parent, textColor, backendURL, *args, **kwargs):
+    def __init__(self, parent, textColor, backendURL, font=None, *args, **kwargs):
         super().__init__(parent, bg='#333333', *args, **kwargs)
         self.textColor = textColor
         self.backendURL = backendURL
+        self.font = font
         self._setup_ui()
 
     def _setup_ui(self):
+        
+        title = StylizedTitle(self, "Configuration", textColor=self.textColor, bgColor='#333333')
+        title.pack(fill=tk.X)
+        
         canvas = tk.Canvas(self, bg='#333333')
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -52,22 +59,22 @@ class ConfigurationEditorFrame(tk.Frame):
 
         self.config_entries = {}
         for idx, (label_text, key, default, tooltip) in enumerate(config_options):
-            label = tk.Label(scrollable_frame, text=label_text, bg='#333333', fg=self.textColor)
+            label = tk.Label(scrollable_frame, text=label_text, bg='#333333', fg=self.textColor, font=self.font)
             label.grid(row=idx, column=0, padx=10, pady=5, sticky='w')
 
             entry_var = tk.StringVar(value=str(default))
-            entry = tk.Entry(scrollable_frame, textvariable=entry_var, bg='#232323', fg=self.textColor)
+            entry = tk.Entry(scrollable_frame, textvariable=entry_var, bg='#232323', fg=self.textColor, font=self.font)
             entry.grid(row=idx, column=1, padx=10, pady=5, sticky='ew')
             self.config_entries[key] = entry_var
 
             info_frame = tk.Frame(scrollable_frame, bg="#333333")
             info_frame.grid(row=idx, column=2, padx=5)
 
-            info_icon = tk.Label(info_frame, text="i", bg='#333333', fg=self.textColor, cursor="question_arrow")
+            info_icon = tk.Label(info_frame, text="i", bg='#333333', fg=self.textColor, cursor="question_arrow", font=self.font)
             info_icon.pack()
             info_icon.bind("<Button-1>", lambda event, tooltip=tooltip: self._show_tooltip(event, tooltip))
 
-        applyButton = tk.Button(scrollable_frame, text="Apply Changes", bg='#232323', fg=self.textColor)
+        applyButton = tk.Button(scrollable_frame, text="Apply Changes", bg='#232323', fg=self.textColor, font=self.font)
         applyButton.grid(row=len(config_options), column=0, columnspan=3, pady=10)
 
     def _show_tooltip(self, event, tooltip):
