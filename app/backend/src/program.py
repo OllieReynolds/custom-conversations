@@ -24,5 +24,14 @@ def check_cuda_available_route():
     cuda_available = check_cuda_available()
     return jsonify(cuda_available=cuda_available)
 
+@app.route('/config', methods=['POST'])
+def update_config():
+    pass
+
+@app.route('/config', methods=['GET'])
+def get_config():
+    return jsonify(config=Config().to_dict())
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='localhost', port=5000)

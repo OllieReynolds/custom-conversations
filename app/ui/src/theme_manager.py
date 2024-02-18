@@ -7,7 +7,6 @@ class ThemeManager:
     def changeTextColor(self, color):
         self.app.textColor = color
         self._updateWidgetColors(self.app, color)
-        # self.app.windowPane.generateConversation.textArea.config(fg=color)
 
     def _updateWidgetColors(self, parent, color):
         for widget in parent.winfo_children():

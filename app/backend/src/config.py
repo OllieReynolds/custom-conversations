@@ -30,4 +30,7 @@ class Config:
 
         # Required files setup
         self.required_files = ['config.json']
+        
+    def to_dict(self):
+        return self.__dict__
 
