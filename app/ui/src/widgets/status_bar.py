@@ -16,10 +16,24 @@ class StatusBarFrame(tk.Frame):
         self.statusLabel = tk.Label(self, text="Ready", bg='#333333', fg=textColor)
         self.statusLabel.grid(row=0, column=2, padx=(0,10), pady=5, sticky='e')
 
+        # Customization for cool-looking status bar
+        self.cudaIcon.config(font=("Arial", 16), fg='#FFD700')  # Change CUDA icon font and color
+        self.cudaStatus.config(font=("Helvetica", 10, 'italic'), fg='#00FF00')  # Change CUDA status font, style, and color
+        self.statusLabel.config(font=("Arial", 10, 'bold'), fg='#00FFFF')  # Change status label font, style, and color
+
     def updateStatus(self, text):
         self.statusLabel.config(text=text)
         
     def updateCUDAStatus(self, isAvailable):
         cudaText = "GPU (CUDA): Available" if isAvailable else "GPU (CUDA): Not Available"
-        cudaColor = "green" if isAvailable else "red"
+        cudaColor = "#00FF00" if isAvailable else "#FF0000"
         self.cudaStatus.config(text=cudaText, fg=cudaColor)
+
+# Example usage
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.geometry("400x100")
+    statusBar = StatusBarFrame(root)
+    statusBar.updateStatus("Processing...")
+    statusBar.updateCUDAStatus(True)
+    root.mainloop()

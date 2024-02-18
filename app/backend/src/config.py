@@ -3,10 +3,17 @@ import os
 
 class Config:
     def __init__(self, **kwargs):
-        self.model_directory = kwargs.get('model_directory', "../models/smut")
+        self.model_directory = kwargs.get('model_directory', "../models/default")
         self.model_name = kwargs.get('model_name', "gpt2")
-        self.file_path = kwargs.get('file_path', os.path.join(os.path.dirname(os.path.abspath(__file__)), '../input/smut.txt'))
+        self.file_path = kwargs.get('file_path', os.path.join(os.path.dirname(os.path.abspath(__file__)), '../input/default.txt'))
         self.device = kwargs.get('device', 'cuda' if torch.cuda.is_available() else 'cpu')
+
+        # General model settings
+        self.model_type = kwargs.get('model_type', 'auto')  # 'gpt2', 'bert', 't5', 'auto' for automatic detection
+        self.preprocessing_function_name = kwargs.get('preprocessing_function_name', 'default_preprocess')
+        self.max_seq_length = kwargs.get('max_seq_length', 512)
+        self.padding_strategy = kwargs.get('padding_strategy', 'max_length')
+        self.truncation_strategy = kwargs.get('truncation_strategy', True)
         
         # Generation parameters
         self.max_length_increment = kwargs.get('max_length_increment', 500)
@@ -27,10 +34,18 @@ class Config:
         self.save_total_limit = kwargs.get('save_total_limit', 2)
         self.evaluation_strategy = kwargs.get('evaluation_strategy', 'steps')
         self.eval_steps = kwargs.get('eval_steps', 1000)
+        
+        # Advanced Features
+        self.use_early_stopping = kwargs.get('use_early_stopping', False)
+        self.early_stopping_patience = kwargs.get('early_stopping_patience', 3)
+        self.use_lr_scheduler = kwargs.get('use_lr_scheduler', True)
+        self.lr_scheduler_type = kwargs.get('lr_scheduler_type', 'linear')
+
+        # Model-specific Features
+        self.model_features = kwargs.get('model_features', {})
 
         # Required files setup
-        self.required_files = ['config.json']
-        
+        self.required_files = kwargs.get('required_files', ['config.json'])
+
     def to_dict(self):
         return self.__dict__
-

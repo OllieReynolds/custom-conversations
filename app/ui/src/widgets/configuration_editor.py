@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk 
 from tkinter import messagebox
 
 from app.ui.src.components.stylised_title import StylizedTitle
@@ -53,7 +54,9 @@ class ConfigurationEditorFrame(tk.Frame):
             ("Save Steps", "save_steps", 10000, "Interval steps for saving checkpoints of the AI model during training. Changing this affects the frequency of model saving and disk usage. Increase for less frequent but larger checkpoints, balancing disk space and checkpoint granularity."),
             ("Save Total Limit", "save_total_limit", 2, "The maximum number of saved checkpoints. Adjusting this parameter controls the disk space usage for saving model checkpoints. Increase to retain more checkpoints for model recovery and analysis."),
             ("Evaluation Strategy", "evaluation_strategy", "steps", "The method used for evaluating the AI model during training. Changing this can affect the training monitoring and evaluation process. Choose 'steps' for evaluation at fixed intervals during training."),
-            ("Eval Steps", "eval_steps", 1000, "Interval steps for evaluating the AI model during training. Modifying this parameter affects the frequency of model evaluation during training. Increase for more frequent evaluations, especially in long training runs.")
+            ("Eval Steps", "eval_steps", 1000, "Interval steps for evaluating the AI model during training. Modifying this parameter affects the frequency of model evaluation during training. Increase for more frequent evaluations, especially in long training runs."),
+            ("Model Type", "model_type", "auto", "Specifies the type of model to use. 'auto' will attempt to automatically determine the appropriate model."),
+            ("Preprocessing Function", "preprocessing_function_name", "default_preprocess", "Name of the preprocessing function to use for preparing input data.")
         ]
 
 
@@ -62,8 +65,17 @@ class ConfigurationEditorFrame(tk.Frame):
             label = tk.Label(scrollable_frame, text=label_text, bg='#333333', fg=self.textColor, font=self.font)
             label.grid(row=idx, column=0, padx=10, pady=5, sticky='w')
 
-            entry_var = tk.StringVar(value=str(default))
-            entry = tk.Entry(scrollable_frame, textvariable=entry_var, bg='#232323', fg=self.textColor, font=self.font)
+            # Use different UI elements based on the type of the config option
+            if isinstance(default, bool):
+                entry_var = tk.BooleanVar(value=default)
+                entry = tk.Checkbutton(scrollable_frame, variable=entry_var, onvalue=True, offvalue=False, bg='#232323', fg=self.textColor, font=self.font)
+            elif isinstance(default, list) or key == "model_type":
+                entry_var = tk.StringVar(value=str(default))
+                entry = ttk.Combobox(scrollable_frame, textvariable=entry_var, values=default if isinstance(default, list) else ["auto", "gpt2", "bert"], state="readonly")
+            else:
+                entry_var = tk.StringVar(value=str(default))
+                entry = tk.Entry(scrollable_frame, textvariable=entry_var, bg='#232323', fg=self.textColor, font=self.font)
+            
             entry.grid(row=idx, column=1, padx=10, pady=5, sticky='ew')
             self.config_entries[key] = entry_var
 
