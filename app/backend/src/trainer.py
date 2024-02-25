@@ -36,21 +36,30 @@ class ModelTrainer:
 
     def get_training_arguments(self):
         return TrainingArguments(
-            output_dir=self.model_directory,
-            overwrite_output_dir=True,
-            num_train_epochs=self.config.training.num_train_epochs,
-            per_device_train_batch_size=self.config.training.per_device_train_batch_size,
-            gradient_accumulation_steps=self.config.training.gradient_accumulation_steps,
-            fp16=self.config.training.fp16,
-            learning_rate=self.config.training.learning_rate,
-            warmup_steps=self.config.training.warmup_steps,
-            save_steps=self.config.training.save_steps,
-            save_total_limit=self.config.training.save_total_limit,
-            seed=random.randint(1, 10000),  # TODO: CONFIGURABLE
-            load_best_model_at_end=True,  # TODO: CONFIGURABLE
-            evaluation_strategy=self.config.training.evaluation_strategy,
-            eval_steps=self.config.training.eval_steps,
-        )
+            output_dir=self.model_directory,  # Where to save model
+            overwrite_output_dir=True,  # Overwrite output directory
+            num_train_epochs=self.config.training.num_train_epochs,  # Training epochs
+            per_device_train_batch_size=self.config.training.per_device_train_batch_size,  # Batch size per device
+            gradient_accumulation_steps=self.config.training.gradient_accumulation_steps,  # Steps before gradient update
+            fp16=self.config.training.fp16,  # Use FP16 precision
+            learning_rate=self.config.training.learning_rate,  # Learning rate
+            warmup_steps=self.config.training.warmup_steps,  # Warmup steps for LR
+            save_steps=self.config.training.save_steps,  # Steps to save model
+            save_total_limit=self.config.training.save_total_limit,  # Max saved models
+            seed=random.randint(1, 10000),  # Random seed for init
+            load_best_model_at_end=True,  # Load best model at end
+            evaluation_strategy=self.config.training.evaluation_strategy,  # Eval during training
+            eval_steps=self.config.training.eval_steps,  # Steps for evaluation
+            logging_dir=self.config.training.logging_dir,  # Directory for logs
+            logging_steps=self.config.training.logging_steps,  # Steps for logging
+            do_train=self.config.training.do_train,  # Whether to train
+            do_eval=self.config.training.do_eval,  # Whether to evaluate
+            do_predict=self.config.training.do_predict,  # Whether to predict
+            logging_strategy="steps",  # Strategy for logging
+            save_strategy="steps",  # Strategy for saving
+            metric_for_best_model=self.config.training.metric_for_best_model,  # Metric for best model
+            greater_is_better=self.config.training.greater_is_better,  # Direction for best metric
+    )
 
     def train(self):
         train_dataset = self.load_training_dataset()

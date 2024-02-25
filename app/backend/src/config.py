@@ -33,6 +33,14 @@ class TrainingConfig:
     early_stopping_patience: int = int(get_env_variable('EARLY_STOPPING_PATIENCE', "3"))
     use_lr_scheduler: bool = get_env_variable('USE_LR_SCHEDULER', "True") == "True"
     lr_scheduler_type: str = get_env_variable('LR_SCHEDULER_TYPE', "linear")
+    logging_dir: str = get_env_variable('LOGGING_DIR', "logs")
+    logging_steps: int = int(get_env_variable('LOGGING_STEPS', "500"))
+    do_train: bool = get_env_variable('DO_TRAIN', "True") == "True"
+    do_eval: bool = get_env_variable('DO_EVAL', "True") == "True"
+    do_predict: bool = get_env_variable('DO_PREDICT', "False") == "True"
+    load_best_model_at_end: bool = get_env_variable('LOAD_BEST_MODEL_AT_END', "True") == "True"
+    metric_for_best_model: str = get_env_variable('METRIC_FOR_BEST_MODEL', "loss")
+    greater_is_better: bool = get_env_variable('GREATER_IS_BETTER', "False") == "True"
 
 @dataclass
 class GenerationConfig:
