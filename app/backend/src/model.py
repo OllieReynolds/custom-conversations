@@ -2,10 +2,7 @@ import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trainer import train_model
 from config import load_config
-from dotenv import load_dotenv
 from logger import get_logger
-
-load_dotenv()
 
 class ConversationModel:
     def __init__(self, config):
@@ -50,7 +47,7 @@ class ConversationModel:
         return self.tokenizer.decode(generated_text_ids[0][new_text_start:], skip_special_tokens=True)
 
 if __name__ == "__main__":
-    config = load_config()  # Load the structured configuration
+    config = load_config()
     conversation_model = ConversationModel(config)
     conversation_history = "Hello, how are you today?"
     generated_text = conversation_model.continue_conversation(conversation_history)

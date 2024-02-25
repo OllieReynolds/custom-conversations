@@ -3,6 +3,9 @@ from typing import List
 import torch
 from logger import get_logger
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class ModelConfig(BaseSettings):
     model_directory: str = Field("../models/default", env='MODEL_DIRECTORY')
@@ -53,7 +56,7 @@ def load_config() -> AppConfig:
 
 config = load_config()
 
-def main():
+def main():    
     logger = get_logger('config_test')
 
     config = load_config()
