@@ -1,62 +1,62 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field
-from typing import List, Dict
+import os
 import torch
-from logger import get_logger
+from dataclasses import dataclass, field
+from typing import Dict, List
 from dotenv import load_dotenv
+from logger import get_logger
 
 load_dotenv()
 
-class ModelConfig(BaseSettings):
-    model_directory: str = Field(default="../trained_model", env='MODEL_DIRECTORY')
-    model_name: str = Field(default="gpt2", env='MODEL_NAME')
-    model_type: str = Field(default="auto", env='MODEL_TYPE')
-    model_features: Dict[str, str] = Field(default_factory=dict, env='MODEL_FEATURES')
+def get_env_variable(key: str, default: str) -> str:
+    return os.getenv(key, default)
 
-class TrainingConfig(BaseSettings):
-    num_train_epochs: int = Field(default=20, env='NUM_TRAIN_EPOCHS')
-    per_device_train_batch_size: int = Field(default=16, env='PER_DEVICE_TRAIN_BATCH_SIZE')
-    gradient_accumulation_steps: int = Field(default=1, env='GRADIENT_ACCUMULATION_STEPS')
-    fp16: bool = Field(default=True, env='FP16')
-    learning_rate: float = Field(default=3e-5, env='LEARNING_RATE')
-    warmup_steps: int = Field(default=1000, env='WARMUP_STEPS')
-    save_steps: int = Field(default=10000, env='SAVE_STEPS')
-    save_total_limit: int = Field(default=2, env='SAVE_TOTAL_LIMIT')
-    evaluation_strategy: str = Field(default="steps", env='EVALUATION_STRATEGY')
-    eval_steps: int = Field(default=1000, env='EVAL_STEPS')
-    use_early_stopping: bool = Field(default=False, env='USE_EARLY_STOPPING')
-    early_stopping_patience: int = Field(default=3, env='EARLY_STOPPING_PATIENCE')
-    use_lr_scheduler: bool = Field(default=True, env='USE_LR_SCHEDULER')
-    lr_scheduler_type: str = Field(default="linear", env='LR_SCHEDULER_TYPE')
+@dataclass
+class ModelConfig:
+    model_directory: str = get_env_variable('MODEL_DIRECTORY', "../trained_model")
+    model_name: str = get_env_variable('MODEL_NAME', "gpt2")
+    model_type: str = get_env_variable('MODEL_TYPE', "auto")
+    model_features: Dict[str, str] = field(default_factory=dict)
 
-class GenerationConfig(BaseSettings):
-    max_length_increment: int = Field(default=500, env='MAX_LENGTH_INCREMENT')
-    do_sample: bool = Field(default=True, env='DO_SAMPLE')
-    top_k: int = Field(default=50, env='TOP_K')
-    no_repeat_ngram_size: int = Field(default=2, env='NO_REPEAT_NGRAM_SIZE')
-    temperature: float = Field(default=0.8, env='TEMPERATURE')
-    top_p: float = Field(default=0.92, env='TOP_P')
+@dataclass
+class TrainingConfig:
+    num_train_epochs: int = int(get_env_variable('NUM_TRAIN_EPOCHS', "20"))
+    per_device_train_batch_size: int = int(get_env_variable('PER_DEVICE_TRAIN_BATCH_SIZE', "16"))
+    gradient_accumulation_steps: int = int(get_env_variable('GRADIENT_ACCUMULATION_STEPS', "1"))
+    fp16: bool = get_env_variable('FP16', "True") == "True"
+    learning_rate: float = float(get_env_variable('LEARNING_RATE', "3e-5"))
+    warmup_steps: int = int(get_env_variable('WARMUP_STEPS', "1000"))
+    save_steps: int = int(get_env_variable('SAVE_STEPS', "10000"))
+    save_total_limit: int = int(get_env_variable('SAVE_TOTAL_LIMIT', "2"))
+    evaluation_strategy: str = get_env_variable('EVALUATION_STRATEGY', "steps")
+    eval_steps: int = int(get_env_variable('EVAL_STEPS', "1000"))
+    use_early_stopping: bool = get_env_variable('USE_EARLY_STOPPING', "False") == "True"
+    early_stopping_patience: int = int(get_env_variable('EARLY_STOPPING_PATIENCE', "3"))
+    use_lr_scheduler: bool = get_env_variable('USE_LR_SCHEDULER', "True") == "True"
+    lr_scheduler_type: str = get_env_variable('LR_SCHEDULER_TYPE', "linear")
 
-class AppConfig(BaseSettings):
-    file_path: str = Field(default="../input/sample.txt", env='FILE_PATH')
-    device: str = Field(default="cuda" if torch.cuda.is_available() else "cpu", env='DEVICE')
-    required_files: List[str] = Field(default=['config.json'], env='REQUIRED_FILES')
+@dataclass
+class GenerationConfig:
+    max_length_increment: int = int(get_env_variable('MAX_LENGTH_INCREMENT', "500"))
+    do_sample: bool = get_env_variable('DO_SAMPLE', "True") == "True"
+    top_k: int = int(get_env_variable('TOP_K', "50"))
+    no_repeat_ngram_size: int = int(get_env_variable('NO_REPEAT_NGRAM_SIZE', "2"))
+    temperature: float = float(get_env_variable('TEMPERATURE', "0.8"))
+    top_p: float = float(get_env_variable('TOP_P', "0.92"))
 
-    model: ModelConfig = ModelConfig()
-    training: TrainingConfig = TrainingConfig()
-    generation: GenerationConfig = GenerationConfig()
+@dataclass
+class AppConfig:
+    file_path: str = get_env_variable('FILE_PATH', "../input/sample.txt")
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    required_files: List[str] = field(default_factory=lambda: ['config.json'])
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = 'utf-8'
-        extra = "forbid"
+    model: ModelConfig = field(default_factory=ModelConfig)
+    training: TrainingConfig = field(default_factory=TrainingConfig)
+    generation: GenerationConfig = field(default_factory=GenerationConfig)
 
 def load_config() -> AppConfig:
     return AppConfig()
 
-
-
-def main():    
+def main():
     logger = get_logger('config_test')
     
     config = load_config()
@@ -71,8 +71,6 @@ def main():
             logger.info(f"{var} loaded from .env file: {os.getenv(var)}")
         else:
             logger.info(f"{var} using default value: {getattr(config.model, var.lower())}")
-
-    logger.info("Logger is configured and working.")
 
 if __name__ == '__main__':
     main()
