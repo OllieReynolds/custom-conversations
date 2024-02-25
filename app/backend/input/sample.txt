@@ -1,0 +1,65 @@
+At first glance, programming a computer appears as easy as
+unscrambling a Sanskrit crossword puzzle. Can these intimidating
+machines be controlled by those of us who cannot balance a
+checkbook or identify a transistor?  What if we foul up the
+computer?  Does programming belong to the professionals, or is it
+a skill the average computer user would benefit from?
+     These are the kinds of questions Abacus recently asked of
+Lyle Faurot, a computer consultant from Moorhead.  Lyle has been
+involved with computers for the past two decades.  He began
+studying about computers on his own while in the Air Force and
+received further training from the University of Minnesota during
+his years of post-graduate study in the field of vocational
+education.
+     Besides his work with larger computers, Lyle has taught
+courses on using the personal computer and related software.  He
+displays a vibrant enthusiasm for the potential of personal
+computers.  Lyle is a free-lance consultant for small business
+users who want to learn how to make the most out of their
+computer systems.
+
+ABACUS: Why would an ordinary person even want to learn a
+programming language in view of all the professional software on
+the market?
+
+LYLE: There are several reasons.  First, programming is fun.  To
+see a task and make the computer do it is personally rewarding.
+Secondly, it is difficult to find a commercial package that will
+do all that you want it to do.  Though the selection is getting
+better all the time, you always find some needs that have been
+overlooked in commercial packages.  Thirdly, most users of
+commercial packages are forced to do some programming themselves
+anyway.  dBASE III is an example of a software package that
+really contains its own programming language.  You can't take
+advantage of its power and features without knowing something
+about programming.  Learning some basic techniques helps you set
+up programs like these to do all they can for you.
+
+ABACUS:  Are men more adept at programming than women?
+
+LYLE: No.  I've trained both men and women.  I haven't noticed
+any inherent difference in their ability to work effectively with
+computers.
+
+ABACUS: Do you need any special skills or abilities?  What if you
+don't like math?
+
+LYLE: The idea that you have to be a whiz at mathematics is an
+old myth.  Almost anyone can learn how to set up a condition--to
+tell the computer "If THIS happens, then I want the program to do
+THAT."  Mathematicians have no corner on the kind of thinking
+required to structure a useful program.
+
+ABACUS: What language would you recommend for the new computer
+user?
+
+LYLE: I'd recommend BASIC.
+
+ABACUS: Why?
+
+LYLE: In BASIC it is easy to get started doing things where you
+can see your results.  To enjoy learning people need feedback--
+they need reinforcement.  It's fun to type in a few short lines
+of instructions and then watch something happen.  BASIC was
+designed for that purpose.  It is a teaching language that helps
+you pick up skills rather easily.
