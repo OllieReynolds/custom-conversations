@@ -5,3 +5,4 @@ input
 *.txt
 !requirements.txt
 __pycache__
+!input/sample.txt

@@ -38,7 +38,7 @@ class GenerationConfig(BaseSettings):
     top_p: float = 0.92
 
 class AppConfig(BaseSettings):
-    file_path: str = "../input/default.txt"
+    file_path: str = "../input/sample.txt"
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     required_files: List[str] = ['config.json']
 
