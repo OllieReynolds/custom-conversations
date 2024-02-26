@@ -10,6 +10,9 @@ load_dotenv()
 def get_env_variable(key: str, default: str) -> str:
     return os.getenv(key, default)
 
+def str_to_bool(value: str) -> bool:
+    return value.strip().lower() in ('true', '1', 't', 'y', 'yes')
+
 @dataclass
 class ModelConfig:
     model_directory: str = get_env_variable('MODEL_DIRECTORY', "../trained_model")
@@ -45,7 +48,7 @@ class TrainingConfig:
 @dataclass
 class GenerationConfig:
     max_length_increment: int = int(get_env_variable('MAX_LENGTH_INCREMENT', "500"))
-    do_sample: bool = get_env_variable('DO_SAMPLE', "True") == "True"
+    do_sample: bool = str_to_bool(get_env_variable('DO_SAMPLE', "True"))
     top_k: int = int(get_env_variable('TOP_K', "50"))
     no_repeat_ngram_size: int = int(get_env_variable('NO_REPEAT_NGRAM_SIZE', "2"))
     temperature: float = float(get_env_variable('TEMPERATURE', "0.8"))

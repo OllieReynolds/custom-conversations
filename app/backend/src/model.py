@@ -1,6 +1,6 @@
 import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from trainer import train_model
+from trainer import ModelTrainer
 from config import load_config
 from logger import get_logger
 
@@ -28,7 +28,8 @@ class ConversationModel:
         return model, tokenizer
 
     def train_model(self, model, tokenizer):
-        train_model(model, tokenizer, self.config)
+        trainer = ModelTrainer(model, tokenizer, self.config)
+        trainer.train()
 
     def continue_conversation(self, conversation_history, hide_conversation_history=True):
         input_ids = self.tokenizer.encode(conversation_history, return_tensors='pt').to(self.config.device)
@@ -49,6 +50,6 @@ class ConversationModel:
 if __name__ == "__main__":
     config = load_config()
     conversation_model = ConversationModel(config)
-    conversation_history = "Hello, how are you today?"
+    conversation_history = "Hello, how are you?"
     generated_text = conversation_model.continue_conversation(conversation_history)
     conversation_model.logger.info(generated_text)
