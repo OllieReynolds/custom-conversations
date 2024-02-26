@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from app.backend.src.database import get_config_value, set_config_value
 from config import Config
 from model import ConversationModel
 import random
@@ -26,11 +27,16 @@ def check_cuda_available_route():
 
 @app.route('/config', methods=['POST'])
 def update_config():
-    pass
+    config_data = request.json
+    for key, value in config_data.items():
+        set_config_value(key, value)
+    return jsonify(success=True)
 
 @app.route('/config', methods=['GET'])
 def get_config():
-    return jsonify(config=Config().to_dict())
+    config_keys = ['some_setting', 'another_setting']
+    config = {key: get_config_value(key) for key in config_keys}
+    return jsonify(config)
 
 
 if __name__ == '__main__':

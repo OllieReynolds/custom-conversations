@@ -1,87 +1,69 @@
+from dataclasses import fields
 import os
-import torch
-from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Optional
+from config_definitions import Config
 from dotenv import load_dotenv
-from logger import get_logger
 
 load_dotenv()
 
-def get_env_variable(key: str, default: str) -> str:
+def str_to_bool(value: str) -> bool:
+    return value.lower() in ('true', '1', 't', 'y', 'yes')
+
+
+def get_env_variable(key: str, default: Optional[str] = None) -> Optional[str]:
     return os.getenv(key, default)
 
-def str_to_bool(value: str) -> bool:
-    return value.strip().lower() in ('true', '1', 't', 'y', 'yes')
+def load_config():
+    temp_config = Config()
+    config_args = {}
+    for field in fields(Config):
+        field_value = get_env_variable(field.name.upper(), getattr(temp_config, field.name))
+        if field.type == bool:
+            config_args[field.name] = str_to_bool(field_value) if field_value is not None else False
+        elif field.type == int:
+            config_args[field.name] = int(field_value) if field_value and field_value.isdigit() else getattr(temp_config, field.name)
+        elif field.type == float:
+            try:
+                config_args[field.name] = float(field_value) if field_value is not None else getattr(temp_config, field.name)
+            except ValueError:
+                config_args[field.name] = getattr(temp_config, field.name)
+        else:
+            config_args[field.name] = field_value
+    return Config(**config_args) # type: ignore
 
-@dataclass
-class ModelConfig:
-    model_directory: str = get_env_variable('MODEL_DIRECTORY', "../trained_model")
-    model_name: str = get_env_variable('MODEL_NAME', "gpt2")
-    model_type: str = get_env_variable('MODEL_TYPE', "auto")
-    model_features: Dict[str, str] = field(default_factory=dict)
-
-@dataclass
-class TrainingConfig:
-    num_train_epochs: int = int(get_env_variable('NUM_TRAIN_EPOCHS', "20"))
-    per_device_train_batch_size: int = int(get_env_variable('PER_DEVICE_TRAIN_BATCH_SIZE', "16"))
-    gradient_accumulation_steps: int = int(get_env_variable('GRADIENT_ACCUMULATION_STEPS', "1"))
-    fp16: bool = get_env_variable('FP16', "True") == "True"
-    learning_rate: float = float(get_env_variable('LEARNING_RATE', "3e-5"))
-    warmup_steps: int = int(get_env_variable('WARMUP_STEPS', "1000"))
-    save_steps: int = int(get_env_variable('SAVE_STEPS', "10000"))
-    save_total_limit: int = int(get_env_variable('SAVE_TOTAL_LIMIT', "2"))
-    evaluation_strategy: str = get_env_variable('EVALUATION_STRATEGY', "steps")
-    eval_steps: int = int(get_env_variable('EVAL_STEPS', "1000"))
-    use_early_stopping: bool = get_env_variable('USE_EARLY_STOPPING', "False") == "True"
-    early_stopping_patience: int = int(get_env_variable('EARLY_STOPPING_PATIENCE', "3"))
-    use_lr_scheduler: bool = get_env_variable('USE_LR_SCHEDULER', "True") == "True"
-    lr_scheduler_type: str = get_env_variable('LR_SCHEDULER_TYPE', "linear")
-    logging_dir: str = get_env_variable('LOGGING_DIR', "logs")
-    logging_steps: int = int(get_env_variable('LOGGING_STEPS', "500"))
-    do_train: bool = get_env_variable('DO_TRAIN', "True") == "True"
-    do_eval: bool = get_env_variable('DO_EVAL', "True") == "True"
-    do_predict: bool = get_env_variable('DO_PREDICT', "False") == "True"
-    load_best_model_at_end: bool = get_env_variable('LOAD_BEST_MODEL_AT_END', "True") == "True"
-    metric_for_best_model: str = get_env_variable('METRIC_FOR_BEST_MODEL', "loss")
-    greater_is_better: bool = get_env_variable('GREATER_IS_BETTER', "False") == "True"
-
-@dataclass
-class GenerationConfig:
-    max_length_increment: int = int(get_env_variable('MAX_LENGTH_INCREMENT', "500"))
-    do_sample: bool = str_to_bool(get_env_variable('DO_SAMPLE', "True"))
-    top_k: int = int(get_env_variable('TOP_K', "50"))
-    no_repeat_ngram_size: int = int(get_env_variable('NO_REPEAT_NGRAM_SIZE', "2"))
-    temperature: float = float(get_env_variable('TEMPERATURE', "0.8"))
-    top_p: float = float(get_env_variable('TOP_P', "0.92"))
-
-@dataclass
-class AppConfig:
-    file_path: str = get_env_variable('FILE_PATH', "../input/sample.txt")
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
-    required_files: List[str] = field(default_factory=lambda: ['config.json'])
-
-    model: ModelConfig = field(default_factory=ModelConfig)
-    training: TrainingConfig = field(default_factory=TrainingConfig)
-    generation: GenerationConfig = field(default_factory=GenerationConfig)
-
-def load_config() -> AppConfig:
-    return AppConfig()
+app_config = load_config()
 
 def main():
-    logger = get_logger('config_test')
-    
     config = load_config()
 
-    env_vars = {
-        'MODEL_DIRECTORY': config.model.model_directory,
-        'MODEL_NAME': config.model.model_name,
-    }
+    print("Loaded Configuration:")
+    print(f"File Path (str): {config.file_path}")
+    print(f"Device (str): {config.device}")
+    print(f"Num Train Epochs (int): {config.num_train_epochs}")
+    print(f"Learning Rate (float): {config.learning_rate}")
+    print(f"FP16 (bool): {config.fp16}")
+    print(f"Model Features (Dict[str, str]): {config.model_features}")
+    print(f"Required Files (List[str]): {config.required_files}")
 
-    for var in env_vars:
-        if var in os.environ:
-            logger.info(f"{var} loaded from .env file: {os.getenv(var)}")
-        else:
-            logger.info(f"{var} using default value: {getattr(config.model, var.lower())}")
+    assert isinstance(config.file_path, str), "File Path is not of type str"
+    assert isinstance(config.device, str), "Device is not of type str"
+    assert isinstance(config.num_train_epochs, int), "Num Train Epochs is not of type int"
+    assert isinstance(config.learning_rate, float), "Learning Rate is not of type float"
+    assert isinstance(config.fp16, bool), "FP16 is not of type bool"
+    assert isinstance(config.model_features, dict), "Model Features is not of type dict"
+    assert isinstance(config.required_files, list), "Required Files is not of type list"
 
-if __name__ == '__main__':
+    assert config.file_path == "app/backend/input/sample.txt", f"File path incorrect. Expected 'app/backend/input/sample.txt', got '{config.file_path}'"
+    assert config.device == "cpu", f"Device incorrect. Expected 'cpu', got '{config.device}'"
+    assert config.num_train_epochs == 20, f"Num Train Epochs incorrect. Expected 20, got {config.num_train_epochs}"
+    assert config.learning_rate == 0.00003, f"Learning Rate incorrect. Expected 0.00003, got {config.learning_rate}"
+    assert config.fp16 is True, "FP16 should be True"
+    assert config.model_features == {}, "Model Features should be an empty dict"
+    assert config.required_files == ['config.json'], "Required Files should contain ['config.json']"
+
+    print("Configuration loaded correctly from .env file and verified for each unique data type.")
+
+if __name__ == "__main__":
+    load_dotenv(dotenv_path='.env.test', override=True)
     main()
+
