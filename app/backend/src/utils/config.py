@@ -1,7 +1,7 @@
 from dataclasses import fields
 import os
 from typing import Optional
-from config_definitions import Config
+from app.backend.src.utils.config_definitions import Config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,11 +9,10 @@ load_dotenv()
 def str_to_bool(value: str) -> bool:
     return value.lower() in ('true', '1', 't', 'y', 'yes')
 
-
 def get_env_variable(key: str, default: Optional[str] = None) -> Optional[str]:
     return os.getenv(key, default)
 
-def load_config():
+def load_config() -> Config:
     temp_config = Config()
     config_args = {}
     for field in fields(Config):

@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict
 
 @dataclass
 class Config:
     # General App Config
     file_path: str = "app/backend/input/sample.txt"
     device: str = "cuda"
-    required_files: List[str] = field(default_factory=lambda: ['config.json'])
 
     # Model Config
     model_directory: str = "app/backend/trained_model"
