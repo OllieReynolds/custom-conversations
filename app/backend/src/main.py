@@ -10,19 +10,49 @@ app = Flask(__name__)
 db = Database()
 config_manager = ConfigManager(db)
 
-@app.route('/generate_conversation', methods=['GET'])
+@app.route('/generate_conversation', methods=['POST'])
 def generate_conversation():
+    if request.content_type != 'text/plain':
+        return jsonify(error="Unsupported Media Type. Please send text/plain content."), 415
+
+    raw_text = request.data.decode('utf-8')
+    if not raw_text:
+        return jsonify(error="No text provided"), 400
+
     config = config_manager.get_config()
     chat_model = ChatModel(config)
     try:
-        with open(config.file_path, 'r', encoding='utf-8') as file:
-            all_lines = file.read().splitlines()
-        selected_lines = random.sample(all_lines, 30)
-        conversation_history = " ".join(selected_lines)
-        conversation = chat_model.generate_reply(conversation_history)
+        conversation = chat_model.generate_reply(raw_text)
     except Exception as e:
         return jsonify(error=str(e)), 500
+
     return jsonify(conversation=conversation)
+
+@app.route('/train', methods=['POST'])
+def train_model():
+    use_sample = request.args.get('use_sample') == 'true'
+    if use_sample:
+        temp_training_file = "app/backend/input/sample.txt"
+    else:
+        if request.content_type != 'text/plain':
+            return jsonify(error="Unsupported Media Type. Please send text/plain content."), 415
+
+        raw_text = request.data.decode('utf-8')
+        if not raw_text:
+            return jsonify(error="No text provided"), 400
+
+        temp_training_file = "app/backend/input/temp_training_data.txt"
+        with open(temp_training_file, "w") as file:
+            file.write(raw_text)
+
+    try:
+        config = config_manager.get_config()
+        chat_model = ChatModel(config)
+        chat_model.retrain_model(temp_training_file)
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+    return jsonify(success=True, message="Model retrained successfully")
 
 @app.route('/check_cuda_available', methods=['GET'])
 def check_cuda_available_route():

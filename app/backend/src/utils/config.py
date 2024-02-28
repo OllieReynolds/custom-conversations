@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 class Config:
     file_path: str = "app/backend/input/sample.txt"
     device: str = "cuda"
-    model_directory: str = "app/backend/trained_model"
+    model_directory: str = "app/backend/trained_models/trained_model"
     model_name: str = "gpt2"
     model_type: str = "auto"
     model_features: Dict[str, str] = field(default_factory=dict)

@@ -24,6 +24,10 @@ class ChatModel:
             self.logger.warning("Model not found. Initializing training...")
             tokenizer, model = self.initialize_and_train_model()
         return model, tokenizer
+    
+    def retrain_model(self, training_data: str):
+        self.config.file_path = training_data
+        self.initialize_and_train_model()
 
     def initialize_and_train_model(self) -> Tuple[AutoTokenizer, AutoModelForCausalLM]:
         tokenizer = AutoTokenizer.from_pretrained(self.config.model_name)
@@ -33,7 +37,7 @@ class ChatModel:
 
     def train_new_model(self, model: AutoModelForCausalLM, tokenizer: AutoTokenizer):
         trainer = LanguageModelTrainer(model, tokenizer, self.config)
-        trainer.train()
+        trainer.execute_training()
 
     def generate_reply(self, message: str, omit_previous_conversation: bool = True) -> str:
         input_tensor = self.prepare_input_tensor(message)

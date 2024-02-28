@@ -1,7 +1,7 @@
 input/*.txt
 input/*.json
 !input/sample.txt
-trained_model/
+trained_models/
 src/__pycache__
 !requirements.txt
 __pycache__
