@@ -1,9 +1,8 @@
 from typing import Any
 from flask import Flask, jsonify, request
-from app.backend.src.utils.config import load_config
 from app.backend.src.ai.model import ChatModel
 import random
-from app.backend.src.utils.config_manager import ConfigManager
+from app.backend.src.utils.config import ConfigManager
 from app.backend.src.utils.utils import check_cuda_available
 from app.backend.src.utils.database import Database
 
@@ -42,7 +41,7 @@ def update_config():
     
 @app.route('/config', methods=['GET'])
 def get_config_route():
-    config_dict = db.get_all_config_values()
+    config_dict = config_manager.get_all_config_values()
     return jsonify(config_dict)
 
 if __name__ == '__main__':

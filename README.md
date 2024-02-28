@@ -15,3 +15,24 @@ pyinstaller --onefile --hidden-import=paho.mqtt.client --add-data "app/backend/s
 
 cd app/backend/src
 pipreqs . --force
+
+## Usage
+
+### API Endpoints
+
+- **Generate Conversation**
+- `GET /generate_conversation`
+- Returns a conversation.
+
+- **Check CUDA Availability**
+- `GET /check_cuda_available`
+- Returns CUDA availability status.
+
+- **Update Configuration**
+- `POST /config`
+- Body: Configuration JSON
+- Updates and returns success status.
+
+- **Get Configuration**
+- `GET /config`
+- Returns current configuration.

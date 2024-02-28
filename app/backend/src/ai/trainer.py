@@ -4,7 +4,7 @@ from transformers import (
 import random
 import os
 from app.backend.src.utils.logger import get_logger
-from app.backend.src.utils.config_definitions import Config
+from app.backend.src.utils.config import Config, app_config
 
 class LanguageModelTrainer:
     def __init__(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, config: Config):

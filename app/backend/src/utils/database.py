@@ -2,7 +2,7 @@ import sqlite3
 from typing import Any, Dict, Optional, Type
 from dataclasses import fields
 
-from app.backend.src.utils.config_definitions import Config
+from app.backend.src.utils.config import Config
 from app.backend.src.utils.logger import get_logger
 
 import json

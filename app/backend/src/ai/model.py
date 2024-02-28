@@ -2,8 +2,7 @@ import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from typing import List, Tuple
 from app.backend.src.ai.trainer import LanguageModelTrainer
-from app.backend.src.utils.config import app_config
-from app.backend.src.utils.config_definitions import Config
+from app.backend.src.utils.config import Config, app_config
 from app.backend.src.utils.logger import get_logger as create_logger
 
 class ChatModel:
