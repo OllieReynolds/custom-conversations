@@ -1,34 +1,41 @@
-from transformers import (
-    PreTrainedModel, PreTrainedTokenizer, TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
-)
+from transformers import TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import random
 import os
-from app.backend.src.utils.logger import get_logger
 from app.backend.src.utils.config import Config, app_config
 
 class LanguageModelTrainer:
-    def __init__(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, config: Config):
+    def __init__(self, model, tokenizer, config: Config):
         self.model = model
         self.tokenizer = tokenizer
         self.config = config
-        self.logger = get_logger(__name__)
         self.output_directory = config.model_directory
         os.makedirs(self.output_directory, exist_ok=True)
 
-    def prepare_dataset(self) -> TextDataset:
-        return TextDataset(
+    def prepare_datasets(self):
+        full_dataset = TextDataset(
             tokenizer=self.tokenizer,
             file_path=self.config.file_path,
             block_size=128
         )
+        
+        train_size = int(0.9 * len(full_dataset))
+        eval_size = len(full_dataset) - train_size
+        
+        # Split the dataset into training and evaluation sets
+        train_dataset = full_dataset[:train_size]
+        eval_dataset = full_dataset[train_size:train_size + eval_size]
+        
+        return train_dataset, eval_dataset
 
-    def prepare_data_collator(self) -> DataCollatorForLanguageModeling:
+    
+    def prepare_data_collator(self):
         return DataCollatorForLanguageModeling(
             tokenizer=self.tokenizer,
             mlm=False
         )
 
-    def setup_training_args(self) -> TrainingArguments:
+    def setup_training_args(self):
         return TrainingArguments(
             output_dir=self.output_directory,
             overwrite_output_dir=True,
@@ -42,13 +49,13 @@ class LanguageModelTrainer:
             save_total_limit=self.config.save_total_limit,
             seed=random.randint(1, 10000),
             load_best_model_at_end=True,
-            evaluation_strategy=self.config.evaluation_strategy,
+            evaluation_strategy="steps",
             eval_steps=self.config.eval_steps,
             logging_dir=self.config.logging_dir,
             logging_steps=self.config.logging_steps,
-            do_train=self.config.do_train,
-            do_eval=self.config.do_eval,
-            do_predict=self.config.do_predict,
+            do_train=True,
+            do_eval=True,
+            do_predict=False,
             logging_strategy="steps",
             save_strategy="steps",
             metric_for_best_model=self.config.metric_for_best_model,
@@ -56,7 +63,7 @@ class LanguageModelTrainer:
         )
 
     def execute_training(self):
-        dataset = self.prepare_dataset()
+        train_dataset, eval_dataset = self.prepare_datasets()
         data_collator = self.prepare_data_collator()
         training_args = self.setup_training_args()
         
@@ -64,7 +71,8 @@ class LanguageModelTrainer:
             model=self.model,
             args=training_args,
             data_collator=data_collator,
-            train_dataset=dataset,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
         )
         
         trainer.train()
@@ -72,9 +80,6 @@ class LanguageModelTrainer:
         self.tokenizer.save_pretrained(self.output_directory)
 
 if __name__ == "__main__":
-    from app.backend.src.utils.config import app_config
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-
     config = app_config
     tokenizer = AutoTokenizer.from_pretrained(config.model_name)
     model = AutoModelForCausalLM.from_pretrained(config.model_name)

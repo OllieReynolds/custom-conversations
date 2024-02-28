@@ -1,7 +1,6 @@
 from typing import Any
 from flask import Flask, jsonify, request
 from app.backend.src.ai.model import ChatModel
-import random
 from app.backend.src.utils.config import ConfigManager
 from app.backend.src.utils.utils import check_cuda_available
 from app.backend.src.utils.database import Database
@@ -21,6 +20,7 @@ def generate_conversation():
 
     config = config_manager.get_config()
     chat_model = ChatModel(config)
+    chat_model.setup_model_and_tokenizer()
     try:
         conversation = chat_model.generate_reply(raw_text)
     except Exception as e:
@@ -42,12 +42,13 @@ def train_model():
             return jsonify(error="No text provided"), 400
 
         temp_training_file = "app/backend/input/temp_training_data.txt"
-        with open(temp_training_file, "w") as file:
+        with open(temp_training_file, "w", encoding="utf-8") as file:
             file.write(raw_text)
 
     try:
         config = config_manager.get_config()
-        chat_model = ChatModel(config)
+        chat_model = ChatModel(config, bypass_model_check=True)
+        chat_model.setup_model_and_tokenizer()
         chat_model.retrain_model(temp_training_file)
     except Exception as e:
         return jsonify(error=str(e)), 500
