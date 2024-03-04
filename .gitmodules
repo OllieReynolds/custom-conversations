@@ -1,0 +1,3 @@
+[submodule "app/backend/src/ai/prototyping/Azure-ttk-theme"]
+	path = app/backend/src/ai/prototyping/Azure-ttk-theme
+	url = https://github.com/rdbende/Azure-ttk-theme.git
