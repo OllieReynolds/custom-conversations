@@ -1,0 +1,56 @@
+{
+    "Feature Extraction": {
+        "description": "Extracts the underlying features from the text.",
+        "usage": "Used in text analysis, to understand underlying patterns.",
+        "sample_input": "Hello, world!",
+        "expected_output": "A vector representation of the text."
+    },
+    "Fill-Mask": {
+        "description": "Predicts the missing word in a sentence.",
+        "usage": "Can be used for data augmentation or to guess missing words.",
+        "sample_input": "Hello, I'm a [MASK] model.",
+        "expected_output": "Predicted word for the mask."
+    },
+    "NER": {
+        "description": "Identifies entities in the text like names, locations, dates.",
+        "usage": "Used in information extraction to identify and classify named entities.",
+        "sample_input": "Albert Einstein was born in Ulm.",
+        "expected_output": "Albert Einstein: Person, Ulm: Location"
+    },
+    "Question Answering": {
+        "description": "Answers questions based on the context provided.",
+        "usage": "Useful for building automated FAQ or information retrieval systems.",
+        "sample_input": "Context: Python is a programming language. Question: What is Python?",
+        "expected_output": "Answer: a programming language"
+    },
+    "Sentiment Analysis": {
+        "description": "Determines if the sentiment is positive, negative, or neutral.",
+        "usage": "Commonly used in analyzing customer feedback, social media.",
+        "sample_input": "I love this phone!",
+        "expected_output": "Positive sentiment"
+    },
+    "Summarization": {
+        "description": "Provides a summary of the input text.",
+        "usage": "Helpful for condensing large texts into shorter summaries.",
+        "sample_input": "The quick brown fox jumps over the lazy dog.",
+        "expected_output": "A concise summary of the text."
+    },
+    "Text Generation": {
+        "description": "Generates text based on the input.",
+        "usage": "Can be used for content creation, chatbots, and more.",
+        "sample_input": "Once upon a time,",
+        "expected_output": "Continuation of the text."
+    },
+    "Translation (EN to FR)": {
+        "description": "Translates English text to French.",
+        "usage": "Useful for translating content between languages.",
+        "sample_input": "Hello, world!",
+        "expected_output": "Bonjour le monde!"
+    },
+    "Zero-Shot Classification": {
+        "description": "Classifies text without needing explicit examples for training.",
+        "usage": "Useful for classifying text into predefined categories.",
+        "sample_input": "This is a course about AI.",
+        "expected_output": "Categories: Education, Technology"
+    }
+}
