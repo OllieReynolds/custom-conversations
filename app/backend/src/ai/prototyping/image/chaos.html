@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colorful Instanced Cubes with Image Colors</title>
+    <title>Aspect Ratio Controlled Colorful Instanced Cubes</title>
     <style>
         body { margin: 0; }
         canvas { display: block; }
@@ -12,12 +12,16 @@
 <body>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/FirstPersonControls.js"></script>
     <script>
         let scene, camera, renderer, mesh, controls;
-        const gridSize = 1536;
         const cubeSize = 1;
-        const gapSize = 0.4;
-        const totalSize = cubeSize + gapSize;
+        const totalWidth = 512;
+        const smallGapX = 0.1;
+        let largeGapX = 3.4;
+
+        const smallGapZ = smallGapX;
+        let largeGapZ = largeGapX;
 
         function init() {
             scene = new THREE.Scene();
@@ -28,8 +32,8 @@
             document.body.appendChild(renderer.domElement);
 
             const loader = new THREE.TextureLoader();
-            loader.load('lena.png', function(texture) {
-                texture.minFilter = THREE.LinearFilter; 
+            loader.load('vulpine2.jpg', function(texture) {
+                texture.minFilter = THREE.LinearFilter;
                 const image = texture.image;
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -38,30 +42,50 @@
                 context.drawImage(image, 0, 0);
                 const imageData = context.getImageData(0, 0, image.width, image.height);
 
-                const colors = new Float32Array(gridSize * gridSize * 3);
-                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-                mesh = new THREE.InstancedMesh(geometry, new THREE.MeshBasicMaterial(), gridSize * gridSize);
+                const colorData = new Float32Array(512 * 512 * 3 * 3);
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize * 3.5);
+                const material = new THREE.MeshBasicMaterial();
+                mesh = new THREE.InstancedMesh(geometry, material, 512 * 512 * 3);
                 scene.add(mesh);
 
                 let idx = 0;
-                for (let i = 0; i < gridSize; i++) {
-                    for (let j = 0; j < gridSize; j++) {
-                        const x = Math.floor(j / gridSize * image.width);
-                        const y = Math.floor(i / gridSize * image.height);
+                for (let i = 0; i < 512; i++) {
+                    for (let j = 0; j < 512; j++) {
+                        const x = j;
+                        const y = i;
                         const pos = (y * image.width + x) * 4;
                         const r = imageData.data[pos] / 255;
                         const g = imageData.data[pos + 1] / 255;
                         const b = imageData.data[pos + 2] / 255;
-                        const matrix = new THREE.Matrix4();
-                        matrix.setPosition(-gridSize / 2 * totalSize + j * totalSize, 0, -gridSize / 2 * totalSize + i * totalSize);
-                        mesh.setMatrixAt(idx, matrix);
-                        colors[idx * 3] = r;
-                        colors[idx * 3 + 1] = g;
-                        colors[idx * 3 + 2] = b;
-                        idx++;
+
+                        for (let k = 0; k < 3; k++) {
+                            const matrix = new THREE.Matrix4();
+                            matrix.setPosition(
+                                -512 * (cubeSize + largeGapX) / 2 + j * (cubeSize + largeGapX) + k * (cubeSize + smallGapX),
+                                0,
+                                -512 * (cubeSize + largeGapZ) / 2 + i * (cubeSize + largeGapZ)
+                            );
+
+                            mesh.setMatrixAt(idx, matrix);
+                            if (k === 0) {
+                                colorData[idx * 3] = r;
+                                colorData[idx * 3 + 1] = 0;
+                                colorData[idx * 3 + 2] = 0;
+                            } else if (k === 1) {
+                                colorData[idx * 3] = 0;
+                                colorData[idx * 3 + 1] = g;
+                                colorData[idx * 3 + 2] = 0;
+                            } else if (k === 2) {
+                                colorData[idx * 3] = 0;
+                                colorData[idx * 3 + 1] = 0;
+                                colorData[idx * 3 + 2] = b;
+                            }
+                            idx++;
+                        }
                     }
                 }
-                mesh.instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
+
+                mesh.instanceColor = new THREE.InstancedBufferAttribute(colorData, 3);
                 mesh.instanceMatrix.needsUpdate = true;
 
                 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -72,15 +96,42 @@
 
                 camera.position.z = 150;
                 camera.position.y = 100;
-
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.25;
-                controls.screenSpacePanning = false;
-                controls.maxPolarAngle = Math.PI / 2;
-
+                
+                controls = new THREE.FirstPersonControls(camera, renderer.domElement);
+                controls.movementSpeed = 50;
+                controls.lookSpeed = 0.1;
+                controls.lookVertical = true;
+                controls.noFly = true;
+                controls.lookAt(scene.position);
+                controls.activeLook = false;
+                
+                const clock = new THREE.Clock();
+                
+                document.addEventListener('mousedown', function(event) {
+                    if (event.button === 2) {
+                        controls.activeLook = true;
+                    }
+                });
+                
+                document.addEventListener('mouseup', function(event) {
+                    if (event.button === 2) {
+                        controls.activeLook = false;
+                    }
+                });
+                
+                document.addEventListener('contextmenu', function(event) {
+                    event.preventDefault();
+                });
+                
                 window.addEventListener('resize', onWindowResize, false);
-
+                
+                function animate() {
+                    requestAnimationFrame(animate);
+                    var delta = clock.getDelta();
+                    controls.update(delta);
+                    renderer.render(scene, camera);
+                }
+                
                 animate();
             });
         }
