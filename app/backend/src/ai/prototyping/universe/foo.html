@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Three.js Demoscene Audio Visualizer</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<button onclick="init()">Play Audio</button>
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/controls/OrbitControls.js"></script>
+<script>
+    let scene, camera, renderer, controls, analyser, dataArray, bufferLength;
+    let bars = [];
+    let initialized = false;
+
+    function init() {
+        if (initialized) return;
+        initialized = true;
+        document.body.removeChild(document.querySelector('button'));
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.z = 50;
+
+        const audioListener = new THREE.AudioListener();
+        camera.add(audioListener);
+
+        const audio = new THREE.Audio(audioListener);
+        const audioLoader = new THREE.AudioLoader();
+        audioLoader.load('elysium.mp3', function(buffer) {
+            audio.setBuffer(buffer);
+            audio.setLoop(true);
+            audio.play();
+        }, undefined, function(error) {
+            console.error('An error happened with the audio loading', error);
+        });
+
+        analyser = new THREE.AudioAnalyser(audio, 256);
+        bufferLength = analyser.analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+
+        const barWidth = 0.3;
+        const spacing = 0.1;
+        const totalWidth = (barWidth + spacing) * bufferLength - spacing;
+        const startX = -totalWidth / 2;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const barGeometry = new THREE.BoxGeometry(barWidth, 2, barWidth);
+            const barMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const bar = new THREE.Mesh(barGeometry, barMaterial);
+            bar.position.x = startX + i * (barWidth + spacing);
+            scene.add(bar);
+            bars.push(bar);
+        }
+
+        window.addEventListener('resize', onWindowResize, false);
+        animate();
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        analyser.analyser.getByteFrequencyData(dataArray);
+        for (let i = 0; i < bufferLength; i++) {
+            const bar = bars[i];
+            bar.scale.y = dataArray[i] / 10 + 0.1;
+            bar.material.color.setHSL(dataArray[i] / 256, 1, 0.5);
+        }
+        controls.update();
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>
