@@ -6,7 +6,8 @@
     <style>
         body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
         canvas { display: block; }
-        #startButton {
+        #startButton, #resetButton {
+            position: absolute;
             padding: 20px 40px;
             font-size: 24px;
             color: white;
@@ -16,19 +17,31 @@
             cursor: pointer;
             z-index: 10;
         }
-        #startButton:focus {
+        #startButton {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #resetButton {
+            top: 20px;
+            right: 20px;
+        }
+        #startButton:focus, #resetButton:focus {
             outline: none;
         }
     </style>
 </head>
 <body>
 <button id="startButton" onclick="startVisualizer()">Start Audio Visualizer</button>
+<button id="resetButton" onclick="resetCamera()" style="display: none;">Reset Camera</button>
 <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/controls/OrbitControls.js"></script>
 <script>
     let scene, camera, renderer, controls, analyser, dataArray, bufferLength;
     let bars = [];
     let initialized = false;
+    const initialCameraPosition = { x: 0, y: 0, z: 50 };
+    const initialCameraRotation = { x: 0, y: 0, z: 0 };
 
     function init() {
         scene = new THREE.Scene();
@@ -38,11 +51,12 @@
         document.body.appendChild(renderer.domElement);
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.z = 50;
+        camera.position.set(initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z);
+        camera.rotation.set(initialCameraRotation.x, initialCameraRotation.y, initialCameraRotation.z);
 
         const audioListener = new THREE.AudioListener();
         camera.add(audioListener);
-        
+
         const audio = new THREE.Audio(audioListener);
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('elysium.mp3', function(buffer) {
@@ -77,10 +91,17 @@
     function startVisualizer() {
         if (!initialized) {
             document.getElementById('startButton').style.display = 'none';
+            document.getElementById('resetButton').style.display = 'block';
             init();
             animate();
             initialized = true;
         }
+    }
+
+    function resetCamera() {
+        camera.position.set(initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z);
+        camera.rotation.set(initialCameraRotation.x, initialCameraRotation.y, initialCameraRotation.z);
+        controls.update();
     }
 
     function onWindowResize() {
@@ -92,13 +113,24 @@
     function animate() {
         requestAnimationFrame(animate);
         analyser.analyser.getByteFrequencyData(dataArray);
+        const smoothedData = smoothData(dataArray);
         for (let i = 0; i < bufferLength; i++) {
             const bar = bars[i];
-            bar.scale.y = dataArray[i] / 10 + 0.1;
-            bar.material.color.setHSL(dataArray[i] / 256, 1, 0.5);
+            bar.scale.y = smoothedData[i] / 10 + 0.1;
+            bar.material.color.setHSL(smoothedData[i] / 256, 1, 0.5);
         }
         controls.update();
         renderer.render(scene, camera);
+    }
+
+    function smoothData(data) {
+        const smoothedData = new Uint8Array(data.length);
+        const smoothingFactor = 0.9;
+        smoothedData[0] = data[0];
+        for (let i = 1; i < data.length; i++) {
+            smoothedData[i] = smoothingFactor * smoothedData[i - 1] + (1 - smoothingFactor) * data[i];
+        }
+        return smoothedData;
     }
 </script>
 </body>
