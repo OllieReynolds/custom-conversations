@@ -43,6 +43,22 @@
     const initialCameraPosition = { x: 0, y: 0, z: 50 };
     const initialCameraRotation = { x: 0, y: 0, z: 0 };
 
+    function perlinNoise(x, y, octaves = 1, persistence = 0.5) {
+        let noise = 0;
+        let frequency = 1;
+        let amplitude = 1;
+      
+        for (let i = 0; i < octaves; ++i) {
+          noise += Math.random() * amplitude;
+          amplitude *= persistence;
+          frequency *= 2;
+          x += frequency;
+          y += frequency;
+        }
+      
+        return noise;
+    }
+
     function init() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -88,7 +104,7 @@
         const ambientLight = new THREE.AmbientLight(0x404040, 1);
         scene.add(ambientLight);
 
-        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        const pointLight = new THREE.PointLight(0xffffff, 0., 0.);
         pointLight.position.set(50, 50, 50);
         scene.add(pointLight);
 
@@ -99,7 +115,7 @@
 
     function createStarfield() {
         const starGeometry = new THREE.BufferGeometry();
-        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 3.5 });
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
         const starVertices = [];
         for (let i = 0; i < 10000; i++) {
             const x = THREE.MathUtils.randFloatSpread(2000);
@@ -111,6 +127,7 @@
         starfield = new THREE.Points(starGeometry, starMaterial);
         scene.add(starfield);
     }
+    
 
     function animateStarfield() {
         const positions = starfield.geometry.attributes.position.array;
@@ -149,14 +166,21 @@
         requestAnimationFrame(animate);
         analyser.analyser.getByteFrequencyData(dataArray);
         const smoothedData = smoothData(dataArray);
+        let accumulatedDecibels = 0;
         for (let i = 0; i < bufferLength; i++) {
             const bar = bars[i];
             bar.scale.y = smoothedData[i] / 10 + 0.1;
             bar.material.emissive.setHSL(smoothedData[i] / 256, 1, 0.5);
+            accumulatedDecibels += smoothedData[i];
         }
         animateStarfield();
+        updateStarSize(accumulatedDecibels);
         controls.update();
         renderer.render(scene, camera);
+    }
+
+    function updateStarSize(decibels) {
+        starfield.material.size = 0.5 + decibels / 5000;
     }
 
     function smoothData(data) {
