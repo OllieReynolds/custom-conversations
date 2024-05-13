@@ -4,12 +4,25 @@
     <meta charset="UTF-8">
     <title>Three.js Demoscene Audio Visualizer</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
         canvas { display: block; }
+        #startButton {
+            padding: 20px 40px;
+            font-size: 24px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        #startButton:focus {
+            outline: none;
+        }
     </style>
 </head>
 <body>
-<button onclick="init()">Play Audio</button>
+<button id="startButton" onclick="startVisualizer()">Start Audio Visualizer</button>
 <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/controls/OrbitControls.js"></script>
 <script>
@@ -18,10 +31,6 @@
     let initialized = false;
 
     function init() {
-        if (initialized) return;
-        initialized = true;
-        document.body.removeChild(document.querySelector('button'));
-
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -33,7 +42,7 @@
 
         const audioListener = new THREE.AudioListener();
         camera.add(audioListener);
-
+        
         const audio = new THREE.Audio(audioListener);
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('elysium.mp3', function(buffer) {
@@ -63,7 +72,15 @@
         }
 
         window.addEventListener('resize', onWindowResize, false);
-        animate();
+    }
+
+    function startVisualizer() {
+        if (!initialized) {
+            document.getElementById('startButton').style.display = 'none';
+            init();
+            animate();
+            initialized = true;
+        }
     }
 
     function onWindowResize() {
