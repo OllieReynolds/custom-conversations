@@ -11,20 +11,20 @@
             position: fixed;
             top: 40%;
             left: 50%;
-            transform: translateX(-50%);
-            overflow: hidden;
+            transform: translate(-50%, -50%);
+            width: 90%;
             white-space: nowrap;
             z-index: 999;
-            width: 90%;
-            display: flex;
-            justify-content: center;
         }
         .scrolling-text {
-            display: inline-block;
+            display: block;
             color: white;
-            font-size: calc(8px + 2vmin);
+            font-size: calc(12px + 2vmin);
             font-weight: bold;
             font-family: Arial, sans-serif;
+            text-align: center;
+            max-width: 100%;
+            overflow-wrap: break-word;
         }
         .arg-text {
             position: absolute;
@@ -32,10 +32,12 @@
             left: 50%;
             transform: translateX(-50%);
             color: white;
-            font-size: calc(10px + 3vmin);
+            font-size: calc(14px + 3vmin);
             font-weight: bold;
             text-align: center;
             z-index: 999;
+            max-width: 90%;
+            overflow-wrap: break-word;
         }
     </style>
 </head>
