@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>uwu</title>
     <style>
-        body { margin: 0; }
+        body { margin: 0; overflow: hidden; }
         canvas { display: block; }
         .scrolling-text-container {
             position: fixed;
@@ -15,30 +15,24 @@
             overflow: hidden;
             white-space: nowrap;
             z-index: 999;
+            width: 90%;
+            display: flex;
+            justify-content: center;
         }
         .scrolling-text {
             display: inline-block;
             color: white;
-            font-size: 48px;
+            font-size: calc(8px + 2vmin);
             font-weight: bold;
             font-family: Arial, sans-serif;
-            animation: scroll 40s linear infinite;
-        }
-        @keyframes scroll {
-            0% {
-                transform: translateX(100%);
-            }
-            100% {
-                transform: translateX(-200%);
-            }
         }
         .arg-text {
             position: absolute;
-            top: 0px;
+            top: 5%;
             left: 50%;
             transform: translateX(-50%);
             color: white;
-            font-size: 72px;
+            font-size: calc(10px + 3vmin);
             font-weight: bold;
             text-align: center;
             z-index: 999;
@@ -82,7 +76,6 @@
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
-
 
             const fogColor = 0x87CEEB;
             const near = 10;
