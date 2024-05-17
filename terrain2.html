@@ -7,55 +7,40 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
-        .scrolling-text-container {
+        .center-text {
             position: fixed;
-            top: 40%;
+            top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 90%;
-            white-space: nowrap;
-            z-index: 999;
-        }
-        .scrolling-text {
-            display: block;
-            color: white;
-            font-size: calc(12px + 2vmin);
-            font-weight: bold;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            max-width: 100%;
-            overflow-wrap: break-word;
-        }
-        .arg-text {
-            position: absolute;
-            top: 5%;
-            left: 50%;
-            transform: translateX(-50%);
             color: white;
             font-size: calc(14px + 3vmin);
             font-weight: bold;
+            font-family: Arial, sans-serif;
             text-align: center;
             z-index: 999;
-            max-width: 90%;
-            overflow-wrap: break-word;
+        }
+        #startButton {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            z-index: 1000;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="scrolling-text-container">
-        <div class="scrolling-text">
-            <p><strong>1:  </strong>Vspcly Ylfuvskz ohz klltlk fvb dvyaof</p>
-            <p><strong>2:  </strong>Blf szev rnkivhhvw nv!</p>
-            <p><strong>3:  </strong>Id nneube. inttikayn ol ohr.d'h owdt.</p>
-            <p><strong>4:  </strong>Afsg imzuvpkxziptc xl ilozpputm.</p>
-            <p><strong>5:  </strong>01010111011001010110110001101100001000000110010001101111011011100110010100100001</p>
-        </div>
+    <div class="center-text">
+        <p>It's your boy, OllieTheFoxy, back behind the IDE and making cool shit once again. Greets to all who appreciate this stuff. Let's show everyone how cool proc gen can be. Let's burn politics to the ground. Trans lives matter. Love each other. Labels are useful, but can also be deadly.</p>
     </div>
-    
-    <div class="arg-text">
-        <p>Ollie's ARG - £25 for winner, paid next month (decode all ciphers)</p>
-    </div>
-    
+    <button id="startButton">Start</button>
+    <audio id="backgroundMusic" src="squired.mp3" crossorigin="anonymous"></audio>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/simplex-noise.min.js"></script>
 
@@ -64,16 +49,27 @@
         let terrainChunks = {};
         let simplex = new SimplexNoise();
         const chunkSize = 500;
-        const maxHeight = 30;
+        const maxHeight = 40;
         const preloadDistance = 3500;
         const segments = 100;
 
-        init();
-        animate();
+        const movementSensitivity = 100;
+        const frequencyThreshold = 20;
+        const cameraHeight = 130;
+        const cameraSpeed = 1.5;
+
+        let audioContext, analyser, dataArray, bufferLength;
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            init();
+            animate();
+            playMP3File();
+            document.getElementById('startButton').style.display = 'none';
+        });
 
         function init() {
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 50, 0);
+            camera.position.set(0, cameraHeight, 0);
             camera.rotation.x = -Math.PI / 6;
 
             scene = new THREE.Scene();
@@ -93,6 +89,21 @@
             document.body.appendChild(renderer.domElement);
 
             window.addEventListener('resize', onWindowResize);
+
+            setupAudio();
+        }
+
+        function setupAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const audioElement = document.getElementById('backgroundMusic');
+            const audioSrc = audioContext.createMediaElementSource(audioElement);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+
+            audioSrc.connect(analyser);
+            analyser.connect(audioContext.destination);
         }
 
         function generateChunk(xOffset, zOffset) {
@@ -101,10 +112,12 @@
 
             const vertices = geometry.attributes.position.array;
             const colors = [];
+            const baseHeights = [];
             for (let i = 0; i < vertices.length; i += 3) {
                 const x = vertices[i] + xOffset;
                 const z = vertices[i + 2] + zOffset;
                 const height = simplex.noise2D(x / 100, z / 100) * maxHeight;
+                baseHeights.push(height);
                 vertices[i + 1] = height;
 
                 const color = getColor(height);
@@ -112,6 +125,7 @@
             }
 
             geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setAttribute('baseHeight', new THREE.Float32BufferAttribute(baseHeights, 1));
 
             const material = new THREE.MeshStandardMaterial({ vertexColors: THREE.VertexColors });
             const mesh = new THREE.Mesh(geometry, material);
@@ -142,7 +156,8 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            const cameraSpeed = 0.5;
+            analyser.getByteFrequencyData(dataArray);
+
             camera.position.z -= cameraSpeed;
 
             const chunkX = Math.floor(camera.position.x / chunkSize);
@@ -166,10 +181,30 @@
                 if (distance > preloadDistance) {
                     scene.remove(terrainChunks[key]);
                     delete terrainChunks[key];
+                } else {
+                    updateChunk(terrainChunks[key], dataArray);
                 }
             });
 
             renderer.render(scene, camera);
+        }
+
+        function updateChunk(chunk, dataArray) {
+            const vertices = chunk.geometry.attributes.position.array;
+            const baseHeights = chunk.geometry.attributes.baseHeight.array;
+            const significantFrequencies = dataArray.filter(frequency => frequency > frequencyThreshold);
+            if (significantFrequencies.length > 0) {
+                const average = significantFrequencies.reduce((a, b) => a + b, 0) / significantFrequencies.length;
+                for (let i = 0; i < vertices.length; i += 3) {
+                    vertices[i + 1] = baseHeights[i / 3] + (average / 256) * movementSensitivity;
+                }
+                chunk.geometry.attributes.position.needsUpdate = true;
+            }
+        }
+
+        function playMP3File() {
+            const audioElement = document.getElementById('backgroundMusic');
+            audioElement.play();
         }
     </script>
 </body>
